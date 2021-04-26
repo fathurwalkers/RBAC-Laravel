@@ -11,7 +11,7 @@ class CheckAuth
     {
         $users = session('data_login');
         if (!$users) {
-            return redirect()->route('login-page');
+            return redirect()->route('login-page')->with('Silahkan melakukan login terlebih dahulu.');
         }
         return $next($request);
     }
