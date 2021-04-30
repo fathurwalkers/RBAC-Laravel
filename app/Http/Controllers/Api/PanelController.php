@@ -8,6 +8,7 @@ use App\Services\PanelService;
 use Nowakowskir\JWT\JWT;
 use Nowakowskir\JWT\TokenDecoded;
 use Nowakowskir\JWT\TokenEncoded;
+use Illuminate\Support\Facades\Cookie;
 
 class PanelController extends Controller
 {
@@ -29,26 +30,32 @@ class PanelController extends Controller
 
     public function login(PanelService $panelservice, Request $request)
     {
-        // dd($request->cookie('jwt'));
         $jwt = $request->cookie('jwt');
-        $tokenDecoded = new TokenDecoded;
-        $verifierTokenEncoded = new TokenEncoded($jwt);
-        $verifierHeader = $verifierTokenEncoded->decode()->getHeader();
-        $exception = false;
 
-        $validate = $verifierTokenEncoded->validate($panelservice->privateKey(), $verifierHeader['alg']);
-        $tokenEncoded = $tokenDecoded->encode($panelservice->privateKey(), JWT::ALGORITHM_HS256);
-        $payload = $tokenEncoded->decode()->getPayload();
-
-        dd($payload);
-
-        if ($validate == true) {
-            return response([
-                'message' => 'Token valid'
-            ], 200);
+        if ($jwt !== null) {
+            $tokenDecoded = new TokenDecoded;
+            $verifierTokenEncoded = new TokenEncoded($jwt);
+            $verifierHeader = $verifierTokenEncoded->decode()->getHeader();
+            $exception = false;
+    
+            $validate = $verifierTokenEncoded->validate($panelservice->privateKey(), $verifierHeader['alg']);
+            $tokenEncoded = $tokenDecoded->encode($panelservice->privateKey(), JWT::ALGORITHM_HS256);
+            $payload = $tokenEncoded->decode()->getPayload();
+    
+            dd($jwt);
+    
+            if ($validate == true) {
+                return response([
+                    'message' => 'Token valid'
+                ], 200);
+            } else {
+                return response([
+                    'message' => 'Token Tidak Valid!'
+                ], 500);
+            }
         } else {
             return response([
-                'message' => 'Token Tidak Valid!'
+                'message' => 'JWT Sudah Expired!'
             ], 500);
         }
     }
@@ -66,10 +73,10 @@ class PanelController extends Controller
     public function logout(Request $request)
     {
         if ($request->logout == 'logout') {
-            // $request->session()->flush();
+            // Cookie::queue(Cookie::forget('jwt'));
             return response([
                 'message' => 'Logout Success!'
-            ], 200);
+            ], 200)->cookie('jwt', '', 0);
         } else {
             return response([
                 'message' => 'Logout Fail!'

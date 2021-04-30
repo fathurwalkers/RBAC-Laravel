@@ -89,7 +89,7 @@ class PanelService
             $cek_password = Hash::check($password, $cek_login->login_password);
             if ($cek_password) {
                 $keys = PanelService::privateKey();
-                $tokenDecoded = new TokenDecoded(['payload_key' => 'value'], ['header_key' => 'HS256'], ['exp' => time() + 10000]);
+                $tokenDecoded = new TokenDecoded(['payload_key' => $cek_login], ['header_key' => 'HS256'], ['exp' => time() + 10000]);
                 $tokenEncoded = $tokenDecoded->encode($keys, JWT::ALGORITHM_HS256);
                 $data = array([
                     'token' => $tokenEncoded->toString(),
